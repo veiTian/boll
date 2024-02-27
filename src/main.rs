@@ -29,6 +29,8 @@ fn main() {
 
     // 渲染视图的线程
     let render_thread = thread::spawn(move || {
+        // 将终端设为raw mode ，禁用缓冲区
+        let _ = crossterm::terminal::enable_raw_mode();
         // 清屏
         print!("\x1B[2J\x1B[1;1H");
         // 立即刷新标准输出
@@ -40,12 +42,12 @@ fn main() {
             map[y][x] = "●";
 
             for v in &map {
-                println!("");
+                print!("\n\r");
                 for s in v {
                     print!("{} ", s);
                 }
             }
-            println!("");
+            print!("\n\r");
 
             map[y][x] = "O";
 
@@ -59,7 +61,11 @@ fn main() {
                     KeyCode::Down if boll.y < 9 => boll.y += 1,
                     KeyCode::Left if boll.x > 0 => boll.x -= 1,
                     KeyCode::Right if boll.x < 9 => boll.x += 1,
-                    KeyCode::Esc | KeyCode::Char('q') => process::exit(0), // 退出游戏
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        // 解除raw mode
+                        let _ = crossterm::terminal::disable_raw_mode();
+                        process::exit(0)
+                    } // 退出游戏
                     _ => (),
                 }
             }
@@ -76,7 +82,6 @@ fn main() {
     println!("\n");
 }
 
-#[derive(Debug)]
 struct Boll {
     x: usize,
     y: usize,
